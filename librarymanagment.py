@@ -1,19 +1,3 @@
-#!/usr/bin/env python3
-"""
-Library Management System (CLI, SQLite)
----------------------------------------
-Single-file Python app for managing books, members, and loans.
-- Creates `library.db` automatically on first run.
-- Features: add/list/search books & members, borrow/return, overdue list, delete, basic reports.
-
-Run:
-  python library.py
-
-Test data:
-  Use menu option [9] to load a few sample books & members.
-
-Author: ChatGPT
-"""
 from __future__ import annotations
 import sqlite3
 from contextlib import closing
@@ -136,7 +120,6 @@ def list_books(keyword: Optional[str] = None) -> Iterable[sqlite3.Row]:
 
 def delete_book(book_id: int) -> None:
     with closing(get_conn()) as conn, conn:
-        # Prevent delete if active loan exists
         active = conn.execute(
             "SELECT COUNT(*) c FROM loans WHERE book_id=? AND return_date IS NULL",
             (book_id,),
@@ -173,7 +156,6 @@ def list_members(keyword: Optional[str] = None) -> Iterable[sqlite3.Row]:
 
 def delete_member(member_id: int) -> None:
     with closing(get_conn()) as conn, conn:
-        # Prevent delete if active loan exists
         active = conn.execute(
             "SELECT COUNT(*) c FROM loans WHERE member_id=? AND return_date IS NULL",
             (member_id,),
@@ -227,8 +209,7 @@ def return_book(loan_id: int) -> None:
         conn.execute(
             "UPDATE books SET copies_available = copies_available + 1 WHERE id=?",
             (loan["book_id"],),
-        )
-        # Late notice
+        )                          
         due = parse_date(loan["due_date"]).date()
         if datetime.now().date() > due:
             late_days = (datetime.now().date() - due).days
@@ -381,3 +362,4 @@ def cli_loop():
 if __name__ == "__main__":
     init_db()
     cli_loop()
+
